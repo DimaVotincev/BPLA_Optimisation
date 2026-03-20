@@ -142,6 +142,7 @@ void run_sofama() {
     double lb = 47.272, lg = 6.776, l_psi_const = 1.742, le = 176.54;
     double nb = 13.81, ng = 0.108, n_psi_const = 0.859, nc = 7.12;
 
+    
     // Формулы перевода вектора a в параметры автопилота
     double ibe = (trials[0].a[0] - lb) / le;
     double ixe = (trials[0].a[1] - lg) / le;
