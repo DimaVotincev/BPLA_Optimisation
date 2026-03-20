@@ -131,13 +131,48 @@ void run_sofama() {
         trials.insert(trials.end(), next_generation.begin(), next_generation.end());
         sort(trials.begin(), trials.end(), [](const Trial& a, const Trial& b) { return a.z < b.z; });
         if (trials.size() > 5000) trials.resize(1000);
-        if (iter % 20 == 0) cout << "Iteration " << iter << " | Best F: " << trials[0].z << endl;
+        if (iter % 20 == 0) {
+            // cout << "Iteration " << iter << " | Best F: " << trials[0].z << endl;
+        }
         iter++;
     }
 
-    cout << "\nOPTIMIZATION COMPLETE" << endl;
-    cout << "Final F: " << trials[0].z << endl;
-    for (int i = 0; i < dim; ++i) printf("a%d = %10.6f\n", i, trials[0].a[i]);
+    // --- РАСЧЕТ ПЕРЕДАТОЧНЫХ ЧИСЕЛ ---
+    // Аэродинамические коэффициенты (константы из постановки задачи)
+    double lb = 47.272, lg = 6.776, l_psi_const = 1.742, le = 176.54;
+    double nb = 13.81, ng = 0.108, n_psi_const = 0.859, nc = 7.12;
+
+    // Формулы перевода вектора a в параметры автопилота
+    double ibe = (trials[0].a[0] - lb) / le;
+    double ixe = (trials[0].a[1] - lg) / le;
+    double iye = (l_psi_const - trials[0].a[2]) / le;
+    double qe  = trials[0].a[3] / le;
+    double ibc = (trials[0].a[4] - nb) / nc;
+    double ixc = (trials[0].a[5] - ng) / nc;
+    double iyc = (trials[0].a[6] - n_psi_const) / nc;
+
+    // --- ВЫВОД В ФОРМАТЕ MARKDOWN ДЛЯ README ---
+    cout << "\n## 📊 Результаты последней оптимизации\n";
+    cout << "> Данные рассчитаны автоматически алгоритмом SOFAMA\n\n";
+    
+    cout << "### 🎯 Коэффициенты управления (Вектор a)\n";
+    cout << "| Параметр | Значение |\n| :--- | :--- |\n";
+    cout << "| **Критерий F (min)** | **" << fixed << setprecision(6) << trials[0].z << "** |\n";
+    for(int i = 0; i < 7; ++i) {
+        printf("| a%d | %.6f |\n", i, trials[0].a[i]);
+    }
+
+    cout << "\n### ⚙️ Передаточные числа автопилота\n";
+    cout << "| Обозначение | Физический канал | Значение |\n| :--- | :--- | :--- |\n";
+    printf("| $i_{\\beta e}$ | Скольжение -> Элероны | %.6f |\n", ibe);
+    printf("| $i_{xe}$ | Крен -> Элероны | %.6f |\n", ixe);
+    printf("| $i_{ye}$ | Рысканье -> Элероны | %.6f |\n", iye);
+    printf("| $q_e$ | Интегральный канал (крен) | %.6f |\n", qe);
+    printf("| $i_{\\beta c}$ | Скольжение -> Руль | %.6f |\n", ibc);
+    printf("| $i_{xc}$ | Крен -> Руль | %.6f |\n", ixc);
+    printf("| $i_{yc}$ | Рысканье -> Руль | %.6f |\n", iyc);
+    
+    cout << "\n---\n*Последнее обновление: " << __DATE__ << " " << __TIME__ << "*" << endl;
 }
 
 int main() {
