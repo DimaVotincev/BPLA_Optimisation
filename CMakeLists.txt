@@ -15,6 +15,11 @@ find_package(OpenMP REQUIRED)
 # Явно перечисляем файлы. Если добавите новый .cpp — просто допишите его сюда.
 set(SOURCES 
     main.cpp
+    src/criteria.cpp
+    src/dynamics.cpp
+    src/sofama.cpp
+    src/stability.cpp
+    src/target_states.cpp
 )
 
 # Если у вас есть папка include, добавляем её
