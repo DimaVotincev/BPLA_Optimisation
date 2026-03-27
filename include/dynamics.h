@@ -7,9 +7,11 @@ struct AeroConstants {
     double alpha_0, omega_y_star, t_T, epsilon;
 };
 
-struct SimulationResult {
-    double y1, y2, y3, y4, y6, y8; // y8 - значение интеграла (20)
-};
+// struct SimulationResult {
+//     double y1, y2, y3, y4, y6, y8; // y8 - значение интеграла (20)
+// };
+
+using SimulationResult = std::vector<double>;
 
 SimulationResult solveSystemODE(const std::vector<double>& a, const AeroConstants& config);
 #endif
