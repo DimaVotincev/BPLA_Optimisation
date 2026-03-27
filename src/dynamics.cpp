@@ -1,6 +1,7 @@
 #include "dynamics.h"
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
@@ -40,6 +41,7 @@ vector<double> derivatives(const vector<double>& y, const vector<double>& a, con
 // поэтому решаем du/dx = f(u)
 // только вместо u у нас a
 SimulationResult solveSystemODE(const vector<double>& a, const AeroConstants& config) {
+    std::cout << "Start solving ODE \n";
     // Начальные условия: t0 = 0, Yi(t0) = 0 
     vector<double> y = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     
@@ -72,6 +74,7 @@ SimulationResult solveSystemODE(const vector<double>& a, const AeroConstants& co
         t += dt;
     }
 
+    std::cout << "End solving ODE \n";
     // Возвращает значения фазовых координат в момент t_T [cite: 23]
     // {Y1(tT), Y2(tT), Y3(tT), Y4(tT), Y6(tT), Y8(tT)}
     return y; 

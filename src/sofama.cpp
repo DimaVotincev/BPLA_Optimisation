@@ -26,7 +26,7 @@ std::vector<double> runSofama(const SofamaParams& p, std::function<double(const 
     std::vector<std::vector<double>> Z(p.M, std::vector<double>(N));
     std::vector<double> J_val(p.M);
     std::vector<double> F(p.M);
-
+    
     double best_J = 1e9;
     std::vector<double> best_z(N);
 
@@ -43,14 +43,15 @@ std::vector<double> runSofama(const SofamaParams& p, std::function<double(const 
             best_z = Z[i];
         }
     }
-
+    
     // Главный цикл алгоритма (начинается с k = m + 1) [cite: 683]
     int current_pop_size = p.M;
     for (int k = p.M + 1; k <= p.K; ++k) {
-        if (k % 1000 == 0) {
-            std::cout << "Iteration: " << k << " | Pop Size: " << current_pop_size 
-              << " | Best J: " << best_J << std::endl;
-        }
+        // отладочный вывод итераций
+        // if (k % 1 == 0) {
+        //     std::cout << "Iteration: " << k << " | Pop Size: " << current_pop_size 
+        //       << " | Best J: " << best_J << std::endl;
+        // }
 
         // Управляющие последовательности [cite: 850, 988]
         double phi_k = std::pow((static_cast<double>(k) / 1000.0 + 1.0), 0.5);
@@ -76,6 +77,8 @@ std::vector<double> runSofama(const SofamaParams& p, std::function<double(const 
         // [ПРАВКА 2] Выбор опорных векторов (Статья, раздел "Anisotropic Mutation")
         // Необходимо гарантировать w != v != u для предотвращения вырождения мутации
 
+        
+
         // 1. Объявляем переменную ЗАРАНЕЕ
         std::vector<double> new_agent(N);
         std::uniform_real_distribution<double> rand01(0.0, 1.0);
@@ -96,10 +99,33 @@ std::vector<double> runSofama(const SofamaParams& p, std::function<double(const 
             // Если агентов >= 3, выполняем стандартную SOFAMA мутацию
             std::discrete_distribution<int> select_agent(prob.begin(), prob.end());
             
+
+            
             int w_idx = select_agent(gen);
             int v_idx, u_idx;
-            do { v_idx = select_agent(gen); } while (v_idx == w_idx);
-            do { u_idx = select_agent(gen); } while (u_idx == v_idx || u_idx == w_idx);
+
+            // Попытаемся выбрать честно 100 раз
+            int attempts = 0;
+            do { 
+                v_idx = select_agent(gen); 
+                attempts++;
+            } while (v_idx == w_idx && attempts < 100);
+
+            // Если не вышло — берем следующего по кругу
+            if (v_idx == w_idx) v_idx = (w_idx + 1) % current_pop_size;
+
+            attempts = 0;
+            do { 
+                u_idx = select_agent(gen); 
+                attempts++;
+            } while ((u_idx == v_idx || u_idx == w_idx) && attempts < 100);
+
+            // Если не вышло — берем еще одного соседа
+            if (u_idx == v_idx || u_idx == w_idx) {
+                u_idx = (v_idx + 1) % current_pop_size;
+                if (u_idx == w_idx) u_idx = (u_idx + 1) % current_pop_size;
+            }
+            
 
             for (int i = 0; i < N; ++i) {
                 double m_ik, sigma_ik;
