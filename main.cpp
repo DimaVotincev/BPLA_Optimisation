@@ -1,10 +1,23 @@
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <chrono>
+#include <random>
+
 #include "dynamics.h"
 #include "criteria.h"
 #include "sofama.h"
 #include "target_states.h"
 #include "agents.h"
+#include "stability.h"
+
+using namespace std;
+
+
+
+// функции для проверки работоспособности отдельных функций (это временно, как только всё заработает - можно убрать)
+void generate_and_check_stability(); // проверка работоспособности stability.cpp
+
 
 // Функция перевода в коэффициенты рулей (зависимость в конце файла)
 void printControlGains(const std::vector<double>& a, const AeroConstants& c) {
@@ -22,11 +35,21 @@ void printControlGains(const std::vector<double>& a, const AeroConstants& c) {
 }
 
 int main() {
+    system("chcp 65001 > nul");
+
     // Данные SR200 из файла
     AeroConstants sr200 = {
         0.1946, 0.0883, 47.272, 6.776, 1.742, 176.54, 13.81, 0.108, 0.859, 7.12, // Аэродинамика
         3.9, 2.0, 15.0, 0.5 // alpha0, omega_y*, t_T, epsilon
     };
+
+
+    
+    
+    
+
+
+
 
     SofamaParams s_p = {50, 0.3, 5, 0.01, 1000}; // Пример параметров SOFAMA
 
@@ -44,4 +67,58 @@ int main() {
     printControlGains(best_a, sr200);
 
     return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// тест работоспособности проверки устойчивости
+void generate_and_check_stability() {
+    // 1. SR200
+    AeroConstants sr200 = {
+        0.1946, 0.0883, 47.272, 6.776, 1.742, 176.54, 13.81, 0.108, 0.859, 7.12, // Аэродинамика
+        3.9, 2.0, 15.0, 0.5 // alpha0, omega_y*, t_T, epsilon
+    };
+
+    // 2. Настройка генератора случайных чисел
+    mt19937 gen(static_cast<unsigned>(chrono::system_clock::now().time_since_epoch().count()));
+    
+    // Подготавливаем распределения для каждого a_i согласно вашим интервалам
+    // Используем A_BOUNDS из agents.h для соответствия
+    vector<uniform_real_distribution<double>> dists;
+    for (const auto& b : A_BOUNDS) {
+        dists.emplace_back(b.low, b.high);
+    }
+
+    cout << "--- Поиск случайных устойчивых точек ---\n";
+    int found = 0;
+    int attempts = 0;
+    while (found < 5 && attempts < 100000) {
+        attempts++;
+        vector<double> random_a(7);
+        for(int i = 0; i < 7; ++i) random_a[i] = dists[i](gen);
+
+        if (isSystemStable(random_a, sr200)) {
+            found++;
+            cout << "[Устойчив] Точка #" << found << " (попытка " << attempts << ")" << endl;
+        }
+    }
+
 }
